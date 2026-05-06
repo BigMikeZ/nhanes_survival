@@ -5,7 +5,7 @@ library(nhanesA)
 dir.create("data/raw/nhanes", recursive = TRUE, showWarnings = FALSE)
 dir.create("data/raw/mortality", recursive = TRUE, showWarnings = FALSE)
 
-suffix <- c("D", "E", "F", "G", "H")
+suffixes <- c("D", "E", "F", "G", "H")
 modules <- list(
   demo = "DEMO",
   bmx  = "BMX",
