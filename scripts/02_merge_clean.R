@@ -1,8 +1,9 @@
 library(tidyverse)
 
-patterns <- c(DEMO = "^DEMO", BMX = "^BMX", SMQ = "^SMQ", 
+# Import and clean module data
+module_patterns <- c(DEMO = "^DEMO", BMX = "^BMX", SMQ = "^SMQ", 
               PAQ = "^PAQ", MCQ = "^MCQ", BPQ = "^BPQ", DIQ = "^DIQ", HSQ = "^HSQ")
-files <- map(patterns, function(pat) {
+module_files <- map(patterns, function(pat) {
   list.files("data/raw/nhanes", pattern = pat, full.names = TRUE)
 }) 
 str(files)
@@ -103,5 +104,26 @@ nhanes_clean <- nhanes_clean |>
 summary(nhanes_clean)
 glimpse(nhanes_clean)
 
+# Import and clean mortality linkage data
+mortality_files <- list.files("data/raw/mortality", full.names = TRUE)
+mortality_files
+mortality_merged <- map_df(mortality_files, function(f) {
+  read_fwf(
+    f,
+    fwf_positions(c(1, 15, 16, 43), c(6, 15, 16, 45), c("SEQN", "eligstat", "mortstat", "permth_int"))
+  ) |> 
+    mutate(across(everything(), as.character))
+})
+str(mortality_merged)
+glimpse(mortality_merged)
+mortality_merged |> 
+  filter(eligstat == "1")
 
-
+nhanes_joint <- nhanes_clean |> 
+  left_join(mortality_merged, join_by("SEQN")) |> 
+  mutate(
+    eligstat = as.numeric(eligstat),
+    mortstat = as.numeric(mortstat),
+    permth_int = as.numeric(permth_int)
+  )
+nrow(nhanes_joint)
