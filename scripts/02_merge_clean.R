@@ -116,14 +116,23 @@ mortality_merged <- map_df(mortality_files, function(f) {
 })
 str(mortality_merged)
 glimpse(mortality_merged)
-mortality_merged |> 
+mortality_merged <- mortality_merged |> 
   filter(eligstat == "1")
+nrow(mortality_merged)
 
 nhanes_joint <- nhanes_clean |> 
   left_join(mortality_merged, join_by("SEQN")) |> 
   mutate(
-    eligstat = as.numeric(eligstat),
-    mortstat = as.numeric(mortstat),
+    eligstat = as_factor(eligstat),
+    mortstat = as_factor(mortstat),
     permth_int = as.numeric(permth_int)
   )
-nrow(nhanes_joint)
+str(nhanes_joint)
+summary(nhanes_joint)
+
+nhanes_joint <- nhanes_joint |> 
+  filter(!is.na(mortstat))
+summary(nhanes_joint)
+
+saveRDS(nhanes_joint, "data/processed/nhanes_joint.rds")
+
