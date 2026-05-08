@@ -2,6 +2,7 @@ library(tidyverse)
 library(survey)
 library(survival)
 library(survminer)
+library(gtsummary)
 
 nhanes_joint <- readRDS("data/processed/nhanes_joint.rds")
 
@@ -25,19 +26,96 @@ plot(km_fit)
 
 # Build cox model
 cox_fit <- svycoxph(
-                    surv_object ~ DMDMARTL + RIDAGEYR + RIAGENDR + DMDMARTL + DMDEDUC2 +
+                    surv_object ~ DMDMARTL + RIDAGEYR + RIAGENDR + DMDEDUC2 +
                     INDFMPIR + RIDRETH1 + BMXBMI + SMQ020 + PAQ605 + cvd_history + BPQ020 +
                     DIQ010 + HSD010,
                     design = nhanes_survey
                     )
 summary(cox_fit)
 
-nhanes_joint |>
+# Inspect significant missing values from different variables
+summary(nhanes_joint)
+missing_table <- nhanes_joint |>
   mutate(in_model = !is.na(BMXBMI) & !is.na(PAQ605) & 
-           !is.na(HSD010) & !is.na(INDFMPIR)) |>
-  group_by(in_model) |>
-  summarise(
-    n = n(),
-    deaths = sum(mortstat == 1),
-    mean_age = mean(RIDAGEYR)
+           !is.na(HSD010) & !is.na(INDFMPIR) & !is.na(DMDEDUC2)) |> 
+  select(in_model, RIDAGEYR, RIAGENDR, DMDMARTL, DMDEDUC2, 
+         RIDRETH1, BMXBMI, SMQ020, PAQ605, cvd_history, 
+         BPQ020, DIQ010, HSD010, INDFMPIR, mortstat) |>
+  tbl_summary(by = in_model) |>
+  add_p()
+missing_table |> 
+  as_gt() |> 
+  gt::gtsave("output/tables/missing_table.html")
+
+# Test proportional hazard assumption
+cox.zph(cox_fit)
+
+# Stratified models
+nhanes_male <- subset(nhanes_survey, RIAGENDR == "Male")
+nhanes_female <- subset(nhanes_survey, RIAGENDR == "Female")
+
+nhanes_male_cox <- svycoxph(
+  surv_object ~ DMDMARTL + RIDAGEYR + DMDEDUC2 +
+    INDFMPIR + RIDRETH1 + BMXBMI + SMQ020 + PAQ605 + cvd_history + BPQ020 +
+    DIQ010 + HSD010, 
+  design = nhanes_male
   )
+nhanes_female_cox <- svycoxph(
+  surv_object ~ DMDMARTL + RIDAGEYR + DMDEDUC2 +
+    INDFMPIR + RIDRETH1 + BMXBMI + SMQ020 + PAQ605 + cvd_history + BPQ020 +
+    DIQ010 + HSD010,
+  design = nhanes_female
+  )
+
+nhanes_4059 <- subset(nhanes_survey, RIDAGEYR < 60)
+nhanes_6074 <- subset(nhanes_survey, RIDAGEYR >= 60 &  RIDAGEYR < 75)
+nhanes_75nplus <- subset(nhanes_survey, RIDAGEYR >= 75)
+nhanes_4059_cox <- svycoxph(
+  surv_object ~ DMDMARTL + RIAGENDR + DMDEDUC2 +
+    INDFMPIR + RIDRETH1 + BMXBMI + SMQ020 + PAQ605 + cvd_history + BPQ020 +
+    DIQ010 + HSD010,, 
+  design = nhanes_4059)
+nhanes_6074_cox <- svycoxph(
+  surv_object ~ DMDMARTL + RIAGENDR + DMDEDUC2 +
+    INDFMPIR + RIDRETH1 + BMXBMI + SMQ020 + PAQ605 + cvd_history + BPQ020 +
+    DIQ010 + HSD010,, 
+  design = nhanes_6074)
+nhanes_75nplus <- svycoxph(
+  surv_object ~ DMDMARTL + RIAGENDR + DMDEDUC2 +
+    INDFMPIR + RIDRETH1 + BMXBMI + SMQ020 + PAQ605 + cvd_history + BPQ020 +
+    DIQ010 + HSD010,, 
+  design = nhanes_75nplus)
+
+# Fit interaction terms
+marital_sex_cox <- svycoxph(
+  surv_object ~ DMDMARTL*RIAGENDR + RIDAGEYR + DMDEDUC2 +
+    INDFMPIR + RIDRETH1 + BMXBMI + SMQ020 + PAQ605 + cvd_history + BPQ020 +
+    DIQ010 + HSD010,
+  design = nhanes_survey
+)
+summary(marital_sex_cox)
+
+nhanes_joint_binned_age <- nhanes_joint |> 
+  mutate(
+    binned_age = case_when(
+      RIDAGEYR < 60   ~  "40-59",
+      RIDAGEYR < 75   ~  "60-74",
+      RIDAGEYR >= 75  ~  "75 and plus"
+    )
+  )
+
+nhanes_binned_age_survey <- svydesign(
+  data = nhanes_joint_binned_age, 
+  strata = ~SDMVSTRA, 
+  id = ~SDMVPSU, 
+  nest = TRUE, 
+  weights = ~WTINT2YR
+)
+
+nhanes_binned_age_cox <- svycoxph(
+  surv_object ~ DMDMARTL:binned_age + RIAGENDR + DMDEDUC2 +
+    INDFMPIR + RIDRETH1 + BMXBMI + SMQ020 + PAQ605 + cvd_history + BPQ020 +
+    DIQ010 + HSD010,
+  design = nhanes_binned_age_survey
+)
+summary(nhanes_binned_age_cox)
