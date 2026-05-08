@@ -12,7 +12,7 @@ nhanes_joint <- nhanes_joint |>
     RIDRETH1 = as_factor(RIDRETH1),
     HSD010 = factor(HSD010, 
                     levels = c("Excellent", "Very good", "Good", "Fair", "Poor"), 
-                    ordered = TRUE),
+                    ordered = FALSE),
     DIQ010 = case_when(
       DIQ010 == "Yes"                   ~ "Yes",
       DIQ010 %in% c("No", "Borderline") ~ "No",
