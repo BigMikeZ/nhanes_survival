@@ -87,13 +87,13 @@ nhanes_75nplus <- svycoxph(
   design = nhanes_75nplus)
 
 # Fit interaction terms
-marital_sex_cox <- svycoxph(
+sex_interaction_cox <- svycoxph(
   surv_object ~ DMDMARTL*RIAGENDR + RIDAGEYR + DMDEDUC2 +
     INDFMPIR + RIDRETH1 + BMXBMI + SMQ020 + PAQ605 + cvd_history + BPQ020 +
     DIQ010 + HSD010,
   design = nhanes_survey
 )
-summary(marital_sex_cox)
+summary(sex_interaction_cox)
 
 nhanes_joint_binned_age <- nhanes_joint |> 
   mutate(
@@ -112,10 +112,17 @@ nhanes_binned_age_survey <- svydesign(
   weights = ~WTINT2YR
 )
 
-nhanes_binned_age_cox <- svycoxph(
-  surv_object ~ DMDMARTL:binned_age + RIAGENDR + DMDEDUC2 +
+age_interaction_cox <- svycoxph(
+  surv_object ~ DMDMARTL*binned_age + RIAGENDR + DMDEDUC2 +
     INDFMPIR + RIDRETH1 + BMXBMI + SMQ020 + PAQ605 + cvd_history + BPQ020 +
     DIQ010 + HSD010,
   design = nhanes_binned_age_survey
 )
-summary(nhanes_binned_age_cox)
+summary(age_interaction_cox)
+
+# Save model outputs
+dir.create("output/models")
+
+saveRDS(cox_fit, "output/models/cox_fit.rds")
+saveRDS(sex_interaction_cox, "output/models/cox_sex_interaction.rds")
+saveRDS(age_interaction_cox, "output/models/cox_age_interaction.rds")
