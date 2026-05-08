@@ -3,12 +3,12 @@ library(tidyverse)
 # Import and clean module data
 module_patterns <- c(DEMO = "^DEMO", BMX = "^BMX", SMQ = "^SMQ", 
               PAQ = "^PAQ", MCQ = "^MCQ", BPQ = "^BPQ", DIQ = "^DIQ", HSQ = "^HSQ")
-module_files <- map(patterns, function(pat) {
+module_files <- map(module_patterns, function(pat) {
   list.files("data/raw/nhanes", pattern = pat, full.names = TRUE)
 }) 
-str(files)
+str(module_files)
 
-module_list <- map(files, function(f) {
+module_list <- map(module_files, function(f) {
   map_df(f, function(f) {
     read_rds(f) |>
       mutate(across(everything(), as.character))
@@ -124,7 +124,7 @@ nhanes_joint <- nhanes_clean |>
   left_join(mortality_merged, join_by("SEQN")) |> 
   mutate(
     eligstat = as_factor(eligstat),
-    mortstat = as_factor(mortstat),
+    mortstat = as.numeric(mortstat),
     permth_int = as.numeric(permth_int)
   )
 str(nhanes_joint)
