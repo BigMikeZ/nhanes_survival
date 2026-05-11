@@ -1,26 +1,96 @@
 ---
 title: "Marital Status and All-Cause Mortality in U.S. Adults: A Survey-Weighted Survival Analysis"
 author: "Mike Zhang"
-format: html
+date: today
+format: 
+  html:
+    toc: true
+    toc-depth: 3
+    theme: cosmo
+    self-contained: true
+execute:
+  echo: false
+  warning: false
+  message: false
+knitr:
+  opts_knit:
+    root.dir: !expr here::here()
 ---
 
-## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
 ```{r}
-1 + 1
+#| label: setup
+
+library(tidyverse)
+library(haven)
+library(nhanesA)
+library(gtsummary)
+library(survey)
+library(survival)
+library(survminer)
+library(gtsummary)
+library(broom)
 ```
 
-You can add options to executable code like this 
+# Background
+
+# Methods
+
+## Data Source
+
+Data for this study were drawn from the National Health and Nutrition Examination Survey (NHANES), a nationally representative survey of the civilian non-institutionalized US population conducted by the Centers for Disease Control and Prevention (CDC). Five consecutive two-year cycles from 2005 to 2014 were pooled to maximize sample size and mortality follow-up. Mortality status was obtained through linkage with the National Death Index (NDI), with follow-up extended through December 2019. All data are publicly available through the CDC National Center for Health Statistics website.
+
+## Study Population
+
+Of the 50,965 participants across five NHANES cycles, those aged 40 years or older were retained for analysis (n = 18,634). Participants with missing marital status (n = 21) were subsequently excluded, yielding an analytic sample of 18,613 participants. A further 7,654 participants were excluded from multivariable models due to missing covariate data, resulting in a final analytic sample of 10,950 participants for the Cox proportional hazards analysis. A comparison of included and excluded participants is presented in the supplementary materials.
+
+## Exposure and Outcome
+
+Marital status was assessed via self-report and originally categorized into six groups: married, widowed, divorced, separated, never married, and living with a partner. For analytical purposes, these were collapsed into three categories: married, previously married (widowed, divorced, or separated), and never married (never married or living with a partner). Never married served as the reference category in all models.
+
+The outcome of interest was all-cause mortality. Follow-up time was measured in months from the NHANES interview date to the date of death or censoring. Participants who had not died by December 31, 2019 were censored at that date.
+
+## Covariates
+
+Covariates in the analysis were mainly demographic, behavioral, and clinical. Demographic covariates included were: age in years, sex (male or female), level of education (less than 9th grade, 9-11th grade, high school grad, some college, college grad or above ), ethnicity (Mexican American, Other Hispanic, non-Hispanic white, non-Hispanic black, and other race - including multi-racial), and family-income-to-poverty ratio. Behavioral covariates consisted of smoking status (ever having smoked 100 or more cigarettes) and vigorous physical activity (physically active on a typical day). Clinical covariates included the Body Mass Index (BMI), diabetes history, hypertension history, cardiovascular disease history (either coronary heart disease or myocardial infarction), and self-rated health (poor, fair, good, very good, excellent).
+
+## Statistical Analysis
+
+Because NHANES is a weighted survey, `survey` package was utilized to create a `svydesign` object with accurately identified weights, id, and strata. Un weighted KM curves were shown below, and it demonstrated that the hazards for mortality were different for participants with different marital statuses. A Cox proportional hazards model with all the aforementioned variables was constructed using `svycoxph`. The proportional hazards assumption was tested using `cox.zph()` to examine scaled Schoenfeld residuals of each variable. All variables returned a non-significant p-value of either 0.99 or 1, indicating that the proportional hazards assumption held. Effect modification by sex and age group (40–59, 60–74, 75+) was investigated with by integrating interaction terms between marital status and each modifier in separate models, and both interaction terms were non-significant results. All analyses were conducted using R version 4.6.0.
 
 ```{r}
-#| echo: false
-2 * 2
+#| label: fig-km
+#| fig-cap: "Kaplan-Meier survival curves by marital status among U.S. adults aged 40 and older, NHANES 2005–2014. Curves are unweighted and presented for descriptive purposes."
+#| fig-width: 8
+#| fig-height: 6
+
+nhanes_joint <- readRDS(here::here("data/processed/nhanes_joint.rds")) |> 
+  mutate(
+    surv_object = Surv(permth_int, mortstat)
+  )
+km_fit_unweighted <- survfit(surv_object ~ DMDMARTL, data = nhanes_joint)
+ggsurvplot(
+  km_fit_unweighted,
+  data = nhanes_joint,
+  pval = TRUE,
+  conf.int = TRUE,
+  risk.table = TRUE,
+  legend.labs = c("Never married", "Previously married", "Married"),
+  legend.title = "Marital Status",
+  xlab = "Time (Months)",
+  ylab = "Survival Probability",
+  title = "Kaplan-Meier Survival Curves by Marital Status",
+  ggtheme = theme_minimal()
+)
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+# Results
+
+## Sample Characteristics
+
+## Survival Curves
+
+## Cox Proportional Hazards Model
+
+# Limitations
+
+# Conclusions
