@@ -2,6 +2,7 @@ library(tidyverse)
 library(broom)
 
 # Create data for forest plot
+cox_fit <- readRDS("output/models/cox_fit.rds")
 tidy_cox_fit <- tidy(cox_fit, exponentiate = TRUE, conf.int = TRUE) 
 tidy_cox_fit |> 
   count(term) |> 
