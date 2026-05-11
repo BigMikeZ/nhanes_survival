@@ -27,6 +27,12 @@ library(survival)
 library(survminer)
 library(gtsummary)
 library(broom)
+
+nhanes_joint <- readRDS(here::here("data/processed/nhanes_joint.rds")) |> 
+  mutate(
+    surv_object = Surv(permth_int, mortstat)
+  )
+
 ```
 
 # Background
@@ -39,7 +45,7 @@ Data for this study were drawn from the National Health and Nutrition Examinatio
 
 ## Study Population
 
-Of the 50,965 participants across five NHANES cycles, those aged 40 years or older were retained for analysis (n = 18,634). Participants with missing marital status (n = 21) were subsequently excluded, yielding an analytic sample of 18,613 participants. A further 7,654 participants were excluded from multivariable models due to missing covariate data, resulting in a final analytic sample of 10,950 participants for the Cox proportional hazards analysis. A comparison of included and excluded participants is presented in the supplementary materials.
+Of the 50,965 participants across five NHANES cycles, those with eligible mortality data and aged 40 years or older were retained for analysis. Participants with missing marital status were subsequently excluded, yielding an analytic sample of `{r}nrow(nhanes_joint)` participants. A further 7,654 participants were excluded from multivariable models due to missing covariate data, resulting in a final analytic sample of 10,950 participants for the Cox proportional hazards analysis. A comparison of included and excluded participants is presented in the supplementary materials.
 
 ## Exposure and Outcome
 
@@ -61,10 +67,6 @@ Because NHANES is a weighted survey, `survey` package was utilized to create a `
 #| fig-width: 8
 #| fig-height: 6
 
-nhanes_joint <- readRDS(here::here("data/processed/nhanes_joint.rds")) |> 
-  mutate(
-    surv_object = Surv(permth_int, mortstat)
-  )
 km_fit_unweighted <- survfit(surv_object ~ DMDMARTL, data = nhanes_joint)
 ggsurvplot(
   km_fit_unweighted,
