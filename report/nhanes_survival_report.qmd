@@ -6,6 +6,7 @@ format:
   html:
     toc: true
     toc-depth: 3
+    number-sections: true
     theme: cosmo
     self-contained: true
 execute:
@@ -31,6 +32,7 @@ library(broom)
 # Background
 
 # Methods
+
 ## Data Source
 
 Data for this study were drawn from the National Health and Nutrition Examination Survey (NHANES), a nationally representative survey of the civilian non-institutionalized US population conducted by the Centers for Disease Control and Prevention (CDC). Five consecutive two-year cycles from 2005 to 2014 were pooled to maximize sample size and mortality follow-up. Mortality status was obtained through linkage with the National Death Index (NDI), with follow-up extended through December 2019. All data are publicly available through the CDC National Center for Health Statistics website.
