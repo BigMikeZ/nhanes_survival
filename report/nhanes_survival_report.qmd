@@ -45,7 +45,7 @@ Data for this study were drawn from the National Health and Nutrition Examinatio
 
 ## Study Population
 
-Of the 50,965 participants across five NHANES cycles, those with eligible mortality data and aged 40 years or older were retained for analysis. Participants with missing marital status were subsequently excluded, yielding an analytic sample of `{r}nrow(nhanes_joint)` participants. A further 7,654 participants were excluded from multivariable models due to missing covariate data, resulting in a final analytic sample of 10,950 participants for the Cox proportional hazards analysis. A comparison of included and excluded participants is presented in the supplementary materials.
+Of the 50,965 participants across five NHANES cycles, those with eligible mortality data and aged 40 years or older were retained for analysis. Participants with missing marital status were subsequently excluded, yielding an analytic sample of `{r} nrow(nhanes_joint)` participants. A further 7,654 participants were excluded from multivariable models due to missing covariate data, resulting in a final analytic sample of 10,950 participants for the Cox proportional hazards analysis. A comparison of included and excluded participants is presented in the supplementary materials.
 
 ## Exposure and Outcome
 
@@ -87,9 +87,84 @@ ggsurvplot(
 
 ## Sample Characteristics
 
+```{r}
+#| label: tbl-1
+#| fig-cap: "Baseline characteristics of study participants by marital status, NHANES 2005–2014"
+ 
+nhanes_survey <- svydesign(
+  data = nhanes_joint, 
+  strata = ~SDMVSTRA, 
+  id = ~SDMVPSU, 
+  nest = TRUE, 
+  weights = ~WTINT2YR
+)
+
+nhanes_table <- tbl_svysummary(
+  nhanes_survey, 
+  by = DMDMARTL,
+  include = c(RIDAGEYR, RIAGENDR, DMDEDUC2, INDFMPIR, RIDRETH1, BMXBMI, SMQ020, PAQ605, 
+              BPQ020, DIQ010, HSD010, cvd_history),
+  label = list(
+    RIDAGEYR       ~  "Age (years)",
+    RIAGENDR       ~  "Sex",
+    DMDEDUC2       ~  "Education",
+    INDFMPIR       ~  "Family income-to-poverty ratio",
+    RIDRETH1       ~  "Ethnicity",
+    BMXBMI         ~  "BMI",
+    SMQ020         ~  "Ever smoked 100 cigarettes, Yes",
+    PAQ605         ~  "Vigorous physical activity, Yes",
+    cvd_history    ~  "Cardiovascular disease history, Yes",
+    BPQ020         ~  "Hypertension, Yes",
+    DIQ010         ~  "Diabetes, Yes",
+    HSD010         ~  "Self-rated health"
+  ) 
+) |> 
+  add_p() |> 
+  add_overall()
+
+nhanes_table
+
+```
+
+During a median follow-up of `{r} median(nhanes_joint$permth_int)` months, `{r}  sum(nhanes_joint$mortstat == 1)` deaths occurred among `{r} nrow(nhanes_joint)` eligible participants. After accounting for sample weights, the majority of participants were married (n = 17.3 million), followed by previously married (n = 7.1 million) and never married (n = 3.1 million). Among covariates, previously married participants had the highest burden of hypertension (50%), diabetes (16%), and CVD history (9.7%), the lowest physical activity (14%), and the worst self-rated health distribution. Across marital status groups, the never married group was the youngest. The previously married group had more women than men (67% vs 33%). The married group had the highest family-income-to-poverty ratio (median = 2.11) and the best self-rated health.
+
 ## Survival Curves
 
+AKaplan-Meier survival curves stratified by marital status are shown in Figure 1. The previously married group had the worst survival compared to the married and never married groups. Its KM curve separates over time from the other two, indicating higher mortality risk than the other two groups. There isn't any visually apparent difference between survivals of the married and never married groups. However, the KM curves in the plot were unadjusted and unweighted. Formal inference is drawn from the survey-weighted Cox proportional hazards model presented below.
+
 ## Cox Proportional Hazards Model
+
+```{r}
+cox_fit <- readRDS(here::here("output/models/cox_fit.rds"))
+
+tbl_regression(
+  cox_fit,
+  exponentiate = TRUE,
+  label = list(
+    DMDMARTL   ~ "Marital status",
+    RIDAGEYR   ~ "Age (years)",
+    RIAGENDR   ~ "Sex",
+    DMDEDUC2   ~ "Education",
+    INDFMPIR   ~ "Income-to-poverty ratio",
+    RIDRETH1   ~ "Race/ethnicity",
+    BMXBMI     ~ "BMI",
+    SMQ020     ~ "Smoking history",
+    PAQ605     ~ "Vigorous physical activity",
+    cvd_history ~ "CVD history",
+    BPQ020     ~ "Hypertension",
+    DIQ010     ~ "Diabetes",
+    HSD010     ~ "Self-rated health"
+  )
+)
+
+
+```
+
+A Cox proportional hazards model was constructed with mortality as the outcome and all covariates as exposures. Married participants had a 42% lower instantaneous mortality rate than never married participants (HR = 0.58, p < 0.001). Notably, while unadjusted Kaplan-Meier curves suggested worse survival among previously married participants, the adjusted Cox model revealed a borderline non-significant reduction in mortality hazard compared to the never married group (HR = 0.80, p = 0.062), suggesting that the unadjusted survival differences were largely attributable to differences in demographic and clinical characteristics across marital status groups. 
+
+As expected, age was a significant predictor of mortality with each additional year of age associated with a 10% higher instantaneous mortality rate. Females had a 36% lower instantaneous mortality rate than males after accounting for all covariates, which was consistent with established literature. Self-rated health showed a strong dose-response effect. Fair and poor health were the only significant levels compared to excellent, with fair health more than doubling the mortality risk and poor health nearly tripling it (HR = 2.12, p < 0.001; HR = 2.9, p < 0.001). Clinical and behavioral covariates performed as expected: hypertension, diabetes, CVD history, and smoking were each associated with increased mortality hazard, while vigorous physical activity was protective.
+
+Tests of effect modification revealed no significant interactions between marital status and sex, with interaction term p-values of 0.68 and 0.59 for previously married and married, respectively. Similarly, no significant interactions were observed between marital status and age group, with all four interaction term p-values exceeding 0.08.
 
 # Limitations
 
