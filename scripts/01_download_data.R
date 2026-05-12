@@ -1,6 +1,9 @@
 library(tidyverse)
 library(haven)
 library(nhanesA)
+library(usethis)
+
+git_vaccinate()
 
 dir.create("data/raw/nhanes", recursive = TRUE, showWarnings = FALSE)
 dir.create("data/raw/mortality", recursive = TRUE, showWarnings = FALSE)

@@ -157,7 +157,6 @@ tbl_regression(
   )
 )
 
-
 ```
 
 A Cox proportional hazards model was constructed with mortality as the outcome and all covariates as exposures. Married participants had a 42% lower instantaneous mortality rate than never married participants (HR = 0.58, p < 0.001). Notably, while unadjusted Kaplan-Meier curves suggested worse survival among previously married participants, the adjusted Cox model revealed a borderline non-significant reduction in mortality hazard compared to the never married group (HR = 0.80, p = 0.062), suggesting that the unadjusted survival differences were largely attributable to differences in demographic and clinical characteristics across marital status groups. 
