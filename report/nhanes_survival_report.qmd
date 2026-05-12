@@ -135,6 +135,8 @@ AKaplan-Meier survival curves stratified by marital status are shown in Figure 1
 ## Cox Proportional Hazards Model
 
 ```{r}
+#| label: coxph
+
 cox_fit <- readRDS(here::here("output/models/cox_fit.rds"))
 
 tbl_regression(
