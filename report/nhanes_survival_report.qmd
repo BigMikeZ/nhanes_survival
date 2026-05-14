@@ -9,6 +9,8 @@ format:
     number-sections: true
     theme: cosmo
     self-contained: true
+    output-file: index.html
+    output-dir: docs
 execute:
   echo: false
   warning: false
@@ -59,11 +61,11 @@ Covariates in the analysis were mainly demographic, behavioral, and clinical. De
 
 ## Statistical Analysis
 
-Because NHANES is a weighted survey, `survey` package was utilized to create a `svydesign` object with accurately identified weights, id, and strata. Un weighted KM curves were shown below, and it demonstrated that the hazards for mortality were different for participants with different marital statuses. A Cox proportional hazards model with all the aforementioned variables was constructed using `svycoxph`. The proportional hazards assumption was tested using `cox.zph()` to examine scaled Schoenfeld residuals of each variable. All variables returned a non-significant p-value of either 0.99 or 1, indicating that the proportional hazards assumption held. Effect modification by sex and age group (40–59, 60–74, 75+) was investigated with by integrating interaction terms between marital status and each modifier in separate models, and both interaction terms were non-significant results. All analyses were conducted using R version 4.6.0.
+Because NHANES is a weighted survey, `survey` package was utilized to create a `svydesign` object with accurately identified weights, id, and strata. Un weighted KM curves were shown in @fig-1, and it demonstrated that the hazards for mortality were different for participants with different marital statuses. A Cox proportional hazards model with all the aforementioned variables was constructed using `svycoxph`. The proportional hazards assumption was tested using `cox.zph()` to examine scaled Schoenfeld residuals of each variable. All variables returned a non-significant p-value of either 0.99 or 1, indicating that the proportional hazards assumption held. Effect modification by sex and age group (40–59, 60–74, 75+) was investigated with by integrating interaction terms between marital status and each modifier in separate models, and both interaction terms were non-significant results. All analyses were conducted using R version 4.6.0.
 
 ```{r}
-#| label: fig-km
-#| fig-cap: "Kaplan-Meier survival curves by marital status among U.S. adults aged 40 and older, NHANES 2005–2014. Curves are unweighted and presented for descriptive purposes."
+#| label: fig-1
+#| fig-cap: "Kaplan-Meier survival curves by marital status among U.S. adults aged 40 and older, NHANES 2005–2014. Curves are unweighted and presented for descriptive purposes, HNANES 2005-14"
 #| fig-width: 8
 #| fig-height: 6
 
@@ -89,7 +91,7 @@ ggsurvplot(
 
 ```{r}
 #| label: tbl-1
-#| fig-cap: "Baseline characteristics of study participants by marital status, NHANES 2005–2014"
+#| tbl-cap: "Baseline characteristics of U.S. adults aged 40 and older by marital status, NHANES 2005–2014 (n = 18,613). Values represent weighted population estimates presented as median (Q1, Q3) for continuous variables and n (%) for categorical variables."
  
 nhanes_survey <- svydesign(
   data = nhanes_joint, 
@@ -130,12 +132,17 @@ During a median follow-up of `{r} median(nhanes_joint$permth_int)` months, `{r} 
 
 ## Survival Curves
 
-AKaplan-Meier survival curves stratified by marital status are shown in Figure 1. The previously married group had the worst survival compared to the married and never married groups. Its KM curve separates over time from the other two, indicating higher mortality risk than the other two groups. There isn't any visually apparent difference between survivals of the married and never married groups. However, the KM curves in the plot were unadjusted and unweighted. Formal inference is drawn from the survey-weighted Cox proportional hazards model presented below.
+Kaplan-Meier survival curves stratified by marital status are shown in @fig-1. The previously married group had the worst survival compared to the married and never married groups. Its KM curve separates over time from the other two, indicating higher mortality risk than the other two groups. There isn't any visually apparent difference between survivals of the married and never married groups. However, the KM curves in the plot were unadjusted and unweighted. Formal inference is drawn from the survey-weighted Cox proportional hazards model presented below.
 
 ## Cox Proportional Hazards Model
 
+A Cox proportional hazards model was constructed with mortality as the outcome and all covariates as exposures. Married participants had a 42% lower instantaneous mortality rate than never married participants (HR = 0.58, p < 0.001). Notably, while unadjusted Kaplan-Meier curves suggested worse survival among previously married participants, the adjusted Cox model revealed a borderline non-significant reduction in mortality hazard compared to the never married group (HR = 0.80, p = 0.062), suggesting that the unadjusted survival differences were largely attributable to differences in demographic and clinical characteristics across marital status groups. 
+
+As expected, age was a significant predictor of mortality with each additional year of age associated with a 10% higher instantaneous mortality rate. Females had a 36% lower instantaneous mortality rate than males after accounting for all covariates, which was consistent with established literature. Self-rated health showed a strong dose-response effect. Fair and poor health were the only significant levels compared to excellent, with fair health more than doubling the mortality risk and poor health nearly tripling it (HR = 2.12, p < 0.001; HR = 2.9, p < 0.001). Clinical and behavioral covariates performed as expected: hypertension, diabetes, CVD history, and smoking were each associated with increased mortality hazard, while vigorous physical activity was protective.
+
 ```{r}
-#| label: coxph
+#| label: tbl-2
+#| tab-cap: "Survey-weighted Cox proportional hazards model estimates for all-cause mortality among U.S. adults aged 40 and older, NHANES 2005–2014 (n = 10,950). Values presented as hazard ratio (95% confidence interval). Never married serves as the reference category for marital status"
 
 cox_fit <- readRDS(here::here("output/models/cox_fit.rds"))
 
@@ -161,12 +168,73 @@ tbl_regression(
 
 ```
 
-A Cox proportional hazards model was constructed with mortality as the outcome and all covariates as exposures. Married participants had a 42% lower instantaneous mortality rate than never married participants (HR = 0.58, p < 0.001). Notably, while unadjusted Kaplan-Meier curves suggested worse survival among previously married participants, the adjusted Cox model revealed a borderline non-significant reduction in mortality hazard compared to the never married group (HR = 0.80, p = 0.062), suggesting that the unadjusted survival differences were largely attributable to differences in demographic and clinical characteristics across marital status groups. 
 
-As expected, age was a significant predictor of mortality with each additional year of age associated with a 10% higher instantaneous mortality rate. Females had a 36% lower instantaneous mortality rate than males after accounting for all covariates, which was consistent with established literature. Self-rated health showed a strong dose-response effect. Fair and poor health were the only significant levels compared to excellent, with fair health more than doubling the mortality risk and poor health nearly tripling it (HR = 2.12, p < 0.001; HR = 2.9, p < 0.001). Clinical and behavioral covariates performed as expected: hypertension, diabetes, CVD history, and smoking were each associated with increased mortality hazard, while vigorous physical activity was protective.
+
+```{r}
+#| label: fig-2
+#| fig-cap: "Hazard ratios and 95% confidence intervals for all-cause mortality from the survey-weighted Cox proportional hazards model. Blue points indicate marital status categories (reference: never married). Age is expressed per year; the hazard ratio per decade would be approximately 2.51. NHANES 2005–2014."
+#| fig-width: 8
+#| fig-height: 6
+
+knitr::include_graphics(here::here("output/figures/forest_plot.png"))
+
+```
 
 Tests of effect modification revealed no significant interactions between marital status and sex, with interaction term p-values of 0.68 and 0.59 for previously married and married, respectively. Similarly, no significant interactions were observed between marital status and age group, with all four interaction term p-values exceeding 0.08.
 
+# Discussion
+
+The analysis found robust evidence that marital status is independently associated with all-cause mortality among U.S. adults aged 40 and older, even after accounting for various demographic, behavioral, and clinical covariates. Married individuals displayed substantially lower mortality risk than their never married counterparts, in line with the well-documented marriage protection hypothesis, which states that marriage provides survival benefits through mechanisms such as social support, health-promoting behavior reinforcement, and greater economic resources.
+
+A discrepancy is present between the visual display of Kaplan-Meier curves, which showed that the previously married group had a visibly greater mortality risk than the other two groups, and the Cox Proportional Hazards model results, which demonstrated that the never married group had the worst survival outlook. It could be explained by two factors. First, the survival curves were not adjusted for covariates, and mortality risk could be confounded by variables related to marital status. Age, for example, was directly associated with both marital status and mortality with younger people being more likely to be never married and survive at the same time. The Cox Proportional Hazards model accounted for covariates that might cause confounding, and therefore yielded different results. Additionally, the Kaplan-Meier curves were generated using unweighted data, whereas the Cox model incorporated NHANES sampling weights. Without weighting, oversampled subgroups such as minorities and low-income populations are overrepresented relative to their true population proportion, which may shift the survival distributions across marital status groups.
+
+The previously married group displayed a borderline significant protective effect against mortality compared to never married people (HR = 0.80, p = 0.062). This might indicate either that the benefits of marriage could partially persist after the marriage ended or that the potential stress incurred during, for instance, an ugly divorce could offset the previous benefits of marriage. However, because several original marital status categories (widowed, divorced, separated) were all collapsed into previously married for analytic purposes, heterogeneity among these categories could be masked. Widowhood in particular carries different social and psychological implications than divorce.
+
+Self-rated health was one of the strongest predictors of mortality risk and showed a clear incremental effect. The finding was consistent with the existing literature on subjective well-being (SWB) and its impact on life expectancy and mortality. This had profound implications for the field of public health as it probed into the very definition of health, which is "a state of complete physical, mental and social well-being and not merely the absence of disease or infirmity," according to WHO. Together, these findings suggest policy makers and public health professionals should shift focus from the medical conditions to  problems that aren't necessarily pathologically evident yet have a considerable impact on people's health, such as social isolation and loneliness, which may partly underlie the mortality disadvantage observed among never married individuals in this analysis.
+
 # Limitations
 
-# Conclusions
+Several limitations exist within this analysis. First, as stated previously, 7,654 participants were lost due to list-wise deletion while fitting the Cox model with missing participants having higher mortality rates and lower SES. Additionally, the unadjusted and unweighted KM survival curves were presented for descriptive purposes only and should be interpreted with caution. Next, collapsing previously married groups into a single category could obscure how certain marital statuses might affect mortality differently, such as being divorced versus widowed. Also, marital status was measured cross-sectionally at the baseline, meaning that a change in marital status might not be captured during follow-up. Furthermore, behavioral and clinical covariates were all self-reported and were subject to recall bias. Lastly, since NDI linkage only captured deaths within the U.S., deaths occurring outside the U.S. were not captured by the NDI linkage. Future studies should consider longitudinal measures of marital status, multiple imputation for missing data, more nuanced marital status categorization, and fully weighted survival curve estimation to address these limitations.
+
+
+# Conclusion
+
+Overall, the analysis indicated that being currently married had a strong protective effect against mortality risk for adults aged 40 and older in the U.S., after fitting a Cox Proportional Hazards model using weighted national survey data from NHANES and accounting for a comprehensive set of covariates. The findings were mostly consistent with the existing literature and underscore the need for public health professionals and policy makers to invest more resources on various health topics related to marital status, such as loneliness, social isolation, and the health consequences of marital dissolution.
+
+# Supplementary Materials
+
+```{r}
+#| label: missing_table
+#| tbl-cap: "Comparison of baseline characteristics between participants included and excluded from the multivariable Cox model due to missing covariate data, NHANES 2005–2014"
+
+missing_table <- nhanes_joint |>
+  mutate(in_model = factor(!is.na(BMXBMI) & !is.na(PAQ605) & 
+           !is.na(HSD010) & !is.na(INDFMPIR) & !is.na(DMDEDUC2), 
+         labels = c("Excluded", "Included")
+         )
+  ) |> 
+  select(in_model, mortstat, RIDAGEYR, RIAGENDR, DMDMARTL, DMDEDUC2, 
+         RIDRETH1, BMXBMI, SMQ020, PAQ605, cvd_history, 
+         BPQ020, DIQ010, HSD010, INDFMPIR, mortstat) |>
+  tbl_summary(
+    by = in_model,
+    label = list(
+      mortstat       ~  "Mortality",
+      RIDAGEYR       ~  "Age (years)",
+      RIAGENDR       ~  "Sex",
+      DMDEDUC2       ~  "Education",
+      INDFMPIR       ~  "Family income-to-poverty ratio",
+      RIDRETH1       ~  "Ethnicity",
+      BMXBMI         ~  "BMI",
+      SMQ020         ~  "Ever smoked 100 cigarettes, Yes",
+      PAQ605         ~  "Vigorous physical activity, Yes",
+      cvd_history    ~  "Cardiovascular disease history, Yes",
+      BPQ020         ~  "Hypertension, Yes",
+      DIQ010         ~  "Diabetes, Yes",
+      HSD010         ~  "Self-rated health"
+    )
+  ) |>
+  add_p()
+missing_table
+
+```
