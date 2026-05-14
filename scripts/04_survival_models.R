@@ -38,10 +38,27 @@ summary(nhanes_joint)
 missing_table <- nhanes_joint |>
   mutate(in_model = !is.na(BMXBMI) & !is.na(PAQ605) & 
            !is.na(HSD010) & !is.na(INDFMPIR) & !is.na(DMDEDUC2)) |> 
-  select(in_model, RIDAGEYR, RIAGENDR, DMDMARTL, DMDEDUC2, 
+  select(in_model, mortstat, RIDAGEYR, RIAGENDR, DMDMARTL, DMDEDUC2, 
          RIDRETH1, BMXBMI, SMQ020, PAQ605, cvd_history, 
          BPQ020, DIQ010, HSD010, INDFMPIR, mortstat) |>
-  tbl_summary(by = in_model) |>
+  tbl_summary(
+    by = in_model,
+    label = list(
+      mortstat       ~  "Mortality",
+      RIDAGEYR       ~  "Age (years)",
+      RIAGENDR       ~  "Sex",
+      DMDEDUC2       ~  "Education",
+      INDFMPIR       ~  "Family income-to-poverty ratio",
+      RIDRETH1       ~  "Ethnicity",
+      BMXBMI         ~  "BMI",
+      SMQ020         ~  "Ever smoked 100 cigarettes, Yes",
+      PAQ605         ~  "Vigorous physical activity, Yes",
+      cvd_history    ~  "Cardiovascular disease history, Yes",
+      BPQ020         ~  "Hypertension, Yes",
+      DIQ010         ~  "Diabetes, Yes",
+      HSD010         ~  "Self-rated health"
+    )
+  ) |>
   add_p()
 missing_table |> 
   as_gt() |> 
