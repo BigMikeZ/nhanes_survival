@@ -16,12 +16,13 @@ The analysis demonstrated that married participants had a 42% lower instantaneou
 
 ## Tech Stack
 - **Language:** R
-- **Data import, merge, & transformation:** `tidyverse`, `haven`, `nhanesA`
+- **Data import, merge, & transformation:** `tidyverse`, `haven`, `nhanesA`, `glue`
 - **Construct weighted survey data**: `survey`
 - **Survival survey data analysis**: `survival`
 - **Survival curves plotting**: `survminer`
 - **Model parameter extraction**: `broom`
-- **Summary table generation**: `gtsummary`
+- **Summary table generation and save**: `gtsummary`, `gt`
+- **Directory setting in Quarto Markdown**: `here`
 
 ## Reproducing the Analysis
 1. Clone the repository
