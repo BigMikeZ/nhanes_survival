@@ -90,17 +90,17 @@ nhanes_75nplus <- subset(nhanes_survey, RIDAGEYR >= 75)
 nhanes_4059_cox <- svycoxph(
   surv_object ~ DMDMARTL + RIAGENDR + DMDEDUC2 +
     INDFMPIR + RIDRETH1 + BMXBMI + SMQ020 + PAQ605 + cvd_history + BPQ020 +
-    DIQ010 + HSD010,, 
+    DIQ010 + HSD010, 
   design = nhanes_4059)
 nhanes_6074_cox <- svycoxph(
   surv_object ~ DMDMARTL + RIAGENDR + DMDEDUC2 +
     INDFMPIR + RIDRETH1 + BMXBMI + SMQ020 + PAQ605 + cvd_history + BPQ020 +
-    DIQ010 + HSD010,, 
+    DIQ010 + HSD010,
   design = nhanes_6074)
 nhanes_75nplus <- svycoxph(
   surv_object ~ DMDMARTL + RIAGENDR + DMDEDUC2 +
     INDFMPIR + RIDRETH1 + BMXBMI + SMQ020 + PAQ605 + cvd_history + BPQ020 +
-    DIQ010 + HSD010,, 
+    DIQ010 + HSD010,
   design = nhanes_75nplus)
 
 # Fit interaction terms
