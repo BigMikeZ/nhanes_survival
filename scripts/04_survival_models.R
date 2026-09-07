@@ -138,8 +138,6 @@ age_interaction_cox <- svycoxph(
 summary(age_interaction_cox)
 
 # Save model outputs
-dir.create("output/models")
-
 saveRDS(cox_fit, "output/models/cox_fit.rds")
 saveRDS(sex_interaction_cox, "output/models/cox_sex_interaction.rds")
 saveRDS(age_interaction_cox, "output/models/cox_age_interaction.rds")
