@@ -21,7 +21,7 @@ modules <- list(
 )
 
 walk(suffixes, function(suf) {
-  walk2(names(modules), modules, function(label, mod) {
+  walk(unlist(modules, use.names = FALSE), function(mod) {
     table_name <- paste0(mod, "_", suf)
     dest       <- glue::glue("data/raw/nhanes/{table_name}.rds")
     if (!file.exists(dest)) {
